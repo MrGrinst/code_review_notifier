@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'code_review_notifier'
+
+CodeReviewNotifier.call(ARGV)
