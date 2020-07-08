@@ -4,6 +4,7 @@ require_relative "./models/code_change_activity.rb"
 
 class GerritApi < BaseApi
   def self.authenticate
+    @token = nil
     res = post("/login/", {
       body: "username=#{username}&password=#{URI.escape(password)}&rememberme=1",
       headers: {
@@ -12,11 +13,14 @@ class GerritApi < BaseApi
       follow_redirects: false
     })
     set_cookie_header = res.headers["set-cookie"] || ""
-    @token = set_cookie_header.match("GerritAccount=(.*?);")&.to_a&.fetch(1)
-    if @token.nil?
+    token = set_cookie_header.match("GerritAccount=(.*?);")&.to_a&.fetch(1)
+    if token.nil?
       Notifier.notify("Incorrect Credentials", "Trying running `code_review_notifier --setup` again.")
       sleep(120)
       exit
+    else
+      DB.save_setting("api_token", token, is_secret: true)
+      token
     end
   end
 
@@ -24,7 +28,7 @@ class GerritApi < BaseApi
     wrap_with_authentication do
       get("/changes/?S=0&q=is%3Aopen%20owner%3Aself%20-is%3Awip%20-is%3Aignored%20limit%3A25&q=is%3Aopen%20owner%3Aself%20is%3Awip%20limit%3A25&q=is%3Aopen%20-owner%3Aself%20-is%3Awip%20-is%3Aignored%20reviewer%3Aself%20limit%3A25&q=is%3Aclosed%20-is%3Aignored%20%28-is%3Awip%20OR%20owner%3Aself%29%20%28owner%3Aself%20OR%20reviewer%3Aself%29%20-age%3A4w%20limit%3A10&o=DETAILED_ACCOUNTS&o=MESSAGES", {
         headers: {
-          "Cookie" => "GerritAccount=#{@token};"
+          "Cookie" => "GerritAccount=#{token};"
         }
       })
     end.parsed_response.flat_map { |js| js.map { |j| code_change_from_json(j) } }

@@ -10,6 +10,10 @@ end
 class BaseApi
   include HTTParty
 
+  def self.token
+    @token ||= DB.get_setting("api_token") || self.authenticate
+  end
+
   def self.authenticate
     raise NotImplementedError
   end

@@ -10,7 +10,7 @@ class CodeChange
     @id = id
     @owner = owner
     @project = project
-    @subject = subject.gsub("'", "")
+    @subject = subject.gsub("'", "’")
     @updated_at = updated_at
   end
 
