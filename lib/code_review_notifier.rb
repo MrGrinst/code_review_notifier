@@ -2,7 +2,7 @@ require "io/console"
 require_relative "./api.rb"
 require_relative "./notifier.rb"
 
-SECONDS_BETWEEN_RUNS = 120
+SECONDS_BETWEEN_RUNS = 90
 SECONDS_BETWEEN_NOTIFICATIONS = 5
 
 class CodeReviewNotifier
@@ -10,7 +10,7 @@ class CodeReviewNotifier
     system("mkdir -p ~/.code_review_notifier")
     system("brew bundle --file #{File.expand_path(File.dirname(__FILE__) + "/..")}/Brewfile")
 
-    if args[0] == "--setup" || !Api.current_api.is_setup?
+    if args[0] == "--setup"
       print("What's the base URL? (i.e. https://gerrit.google.com) ")
       DB.save_setting("base_api_url", STDIN.gets.chomp, is_secret: false)
 
@@ -25,6 +25,18 @@ class CodeReviewNotifier
       DB.save_setting("account_id", STDIN.gets.chomp, is_secret: false)
 
       puts("All setup!")
+      puts
+      puts("It's recommended that you set this up as a system service with serviceman. Check it out here: https://git.rootprojects.org/root/serviceman")
+      puts("Set code_review_notifier to run on startup with `serviceman add --name code_review_notifier code_review_notifier`")
+      exit
+    end
+
+    if !Api.current_api.is_setup?
+      Notifier.notify("Missing Setup Info", "Run `code_review_notifier --setup` to setup.")
+      puts
+      puts("You must finish setup first by running with the `--setup` option.")
+      puts("`code_review_notifier --setup`")
+      exit
     end
   end
 
@@ -48,11 +60,11 @@ class CodeReviewNotifier
         code_change_activity.notified
         unless is_first_run
           puts("Notifying of change!")
-          Notifier.notify(code_change_activity)
-          sleep SECONDS_BETWEEN_NOTIFICATIONS
+          Notifier.notify_about_code_change(code_change_activity)
+          sleep(SECONDS_BETWEEN_NOTIFICATIONS)
         end
       end
-      sleep SECONDS_BETWEEN_RUNS
+      sleep(SECONDS_BETWEEN_RUNS)
     end
   end
 

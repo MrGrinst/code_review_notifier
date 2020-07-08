@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'code_review_notifier'
-  s.version     = '0.1.2'
+  s.version     = File.read("VERSION").strip
   s.licenses    = ['MIT']
   s.summary     = "Get notifications when updates happen to patch sets/pull requests!"
   s.authors     = ["Kyle Grinstead"]

@@ -11,8 +11,13 @@ class GerritApi < BaseApi
       },
       follow_redirects: false
     })
-    @token = res.headers["set-cookie"].match("GerritAccount=(.*?);")[1]
-    raise "Your username or password is incorrect. Trying running `code_review_notifier --setup` again." if @token.nil?
+    set_cookie_header = res.headers["set-cookie"] || ""
+    @token = set_cookie_header.match("GerritAccount=(.*?);")&.to_a&.fetch(1)
+    if @token.nil?
+      Notifier.notify("Incorrect Credentials", "Trying running `code_review_notifier --setup` again.")
+      sleep(120)
+      exit
+    end
   end
 
   def self.all_code_changes
