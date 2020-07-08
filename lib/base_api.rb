@@ -48,7 +48,7 @@ class BaseApi
     @base_api_url ||= begin
                         url = DB.get_setting("base_api_url")
                         base_uri(url)
-                        url.chomp("/")
+                        url&.chomp("/")
                       end
   end
 

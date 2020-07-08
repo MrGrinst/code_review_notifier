@@ -1,2 +1,2 @@
-brew 'sqlite'
-brew 'terminal-notifier'
+brew "sqlite"
+brew "terminal-notifier"

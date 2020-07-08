@@ -1,4 +1,4 @@
-require_relative './api.rb'
+require_relative "./api.rb"
 
 class Notifier
   def self.notify_about_code_change(code_change_activity)
