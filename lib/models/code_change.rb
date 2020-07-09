@@ -1,5 +1,4 @@
 require "date"
-require_relative "../database.rb"
 
 class CodeChange
   attr_accessor :code_change_activity

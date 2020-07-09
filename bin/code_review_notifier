@@ -2,4 +2,4 @@
 
 require "code_review_notifier"
 
-CodeReviewNotifier.call(ARGV)
+CodeReviewNotifier.new(ARGV).call

@@ -1,3 +1,5 @@
+require "rubiclifier"
+
 MESSAGES_TO_IGNORE = [/Uploaded patch set 1/, /Build Started/, /owns \d+% of/]
 AUTHOR_TRANSLATIONS = {
   "Service Cloud Jenkins" => "Jenkins",
@@ -17,14 +19,14 @@ class CodeChangeActivity
   end
 
   def notified
-    DB.execute("INSERT INTO code_change_activity_notified (id, notified_at) VALUES('#{id}', CURRENT_TIMESTAMP);")
+    Rubiclifier::DB.execute("INSERT INTO code_change_activity_notified (id, notified_at) VALUES('#{id}', CURRENT_TIMESTAMP);")
   end
 
   def should_notify?
     !is_self &&
       code_change.activity_from_self_at && created_at > code_change.activity_from_self_at &&
       MESSAGES_TO_IGNORE.none? { |m| message.match(m) } &&
-      !DB.query_single_row("SELECT id FROM code_change_activity_notified WHERE id = '#{id}'")
+      !Rubiclifier::DB.query_single_row("SELECT id FROM code_change_activity_notified WHERE id = '#{id}'")
   end
 
   def self.translate_author(author)

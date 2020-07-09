@@ -1,48 +1,24 @@
-require "io/console"
+require "rubiclifier"
 require_relative "./api.rb"
-require_relative "./notifier.rb"
+require_relative "./code_change_notification.rb"
 
 SECONDS_BETWEEN_RUNS = 90
 SECONDS_BETWEEN_NOTIFICATIONS = 5
 
-class CodeReviewNotifier
-  def self.setup(args)
-    system("mkdir -p ~/.code_review_notifier")
-    system("brew bundle --file #{File.expand_path(File.dirname(__FILE__) + "/..")}/Brewfile")
-
-    if args[0] == "--setup"
-      print("What's the base URL? (i.e. https://gerrit.google.com) ")
-      DB.save_setting("base_api_url", STDIN.gets.chomp, is_secret: false)
-
-      print("What's the account username? ")
-      DB.save_setting("username", STDIN.gets.chomp, is_secret: false)
-
-      print("What's the account password? (hiding input) ")
-      DB.save_setting("password", STDIN.noecho(&:gets).chomp, is_secret: true)
-      puts
-
-      print("What's the account id? (check #{Api.current_api.base_api_url}/settings/) ")
-      DB.save_setting("account_id", STDIN.gets.chomp, is_secret: false)
-
-      puts("All setup!")
-      puts
-      puts("It's recommended that you set this up as a system service with serviceman. Check it out here: https://git.rootprojects.org/root/serviceman")
-      puts("Set code_review_notifier to run on startup with `serviceman add --name code_review_notifier code_review_notifier`")
-      exit
-    end
-
-    if !Api.current_api.is_setup?
-      Notifier.notify("Missing Setup Info", "Run `code_review_notifier --setup` to setup.")
-      puts
-      puts("You must finish setup first by running with the `--setup` option.")
-      puts("`code_review_notifier --setup`")
-      exit
-    end
+class CodeReviewNotifier < Rubiclifier::BaseApplication
+  def show_help
+    puts
+    puts("This polls for updates to patch sets/pull requests and notifies you about any relevant changes.")
+    puts
+    puts("Usage:")
+    puts("  code_review_notifier --help  | Shows this help menu")
+    puts("  code_review_notifier --setup | Runs setup")
+    puts("  code_review_notifier         | Start listening for changes (should be run in background)")
+    puts
+    exit
   end
 
-  def self.call(args)
-    setup(args)
-
+  def run_application
     while true
       is_first_run = is_first_run?
       puts
@@ -60,7 +36,7 @@ class CodeReviewNotifier
         code_change_activity.notified
         unless is_first_run
           puts("Notifying of change!")
-          Notifier.notify_about_code_change(code_change_activity)
+          CodeChangeNotification.new(code_change_activity).send
           sleep(SECONDS_BETWEEN_NOTIFICATIONS)
         end
       end
@@ -68,7 +44,43 @@ class CodeReviewNotifier
     end
   end
 
-  def self.is_first_run?
-    DB.query_single_row("SELECT id FROM code_change_activity_notified;").nil?
+  def not_setup
+    Rubiclifier::Notification.new(
+      "Missing Setup Info",
+      "Run `code_review_notifier --setup` to setup."
+    ).send
+  end
+
+  def is_background_service?
+    true
+  end
+
+  def sends_notifications?
+    true
+  end
+
+  def settings
+    @settings ||= [
+      Rubiclifier::Setting.new("base_api_url", "base URL", explanation: "e.g. https://gerrit.google.com"),
+      Rubiclifier::Setting.new("username", "account username"),
+      Rubiclifier::Setting.new("password", "account password", explanation: "input hidden", is_secret: true),
+      Rubiclifier::Setting.new("account_id", "account ID", explanation: -> {"check #{Api.current_api.base_api_url}/settings/"})
+    ]
+  end
+
+  def executable_name
+    "code_review_notifier"
+  end
+
+  def data_directory
+    "~/.code_review_notifier"
+  end
+
+  def migrations_location
+    "#{File.expand_path(File.dirname(__FILE__) + "/..")}/migrations.rb"
+  end
+
+  def is_first_run?
+    Rubiclifier::DB.query_single_row("SELECT id FROM code_change_activity_notified;").nil?
   end
 end
