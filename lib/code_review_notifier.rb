@@ -51,12 +51,12 @@ class CodeReviewNotifier < Rubiclifier::BaseApplication
     ).send
   end
 
-  def is_background_service?
-    true
-  end
-
-  def sends_notifications?
-    true
+  def features
+    [
+      Rubiclifier::Feature::BACKGROUND,
+      Rubiclifier::Feature::DATABASE,
+      Rubiclifier::Feature::NOTIFICATIONS
+    ]
   end
 
   def settings

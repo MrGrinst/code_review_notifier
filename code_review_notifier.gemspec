@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.post_install_message = <<MSG
 
 \e[32mThanks for installing code_review_notifier!\e[0m
-\e[32mSet it up by running `code_review_notifier --setup`\e[0m
+\e[32mSet it up by running `\e[0mcode_review_notifier --setup\e[32m`\e[0m
 
 MSG
 end
