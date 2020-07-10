@@ -20,22 +20,24 @@ class CodeReviewNotifier < Rubiclifier::BaseApplication
 
   def run_application
     while true
-      is_first_run = is_first_run?
-      puts
-      puts("Querying API...")
-      all_code_changes = Api.current_api.all_code_changes
-      puts("Checking for notifications to display...")
-      all_activity = []
-      all_code_changes.each do |cc|
-        cc.code_change_activity.sort! { |a, b| a.created_at <=> b.created_at }
-        all_activity.concat(cc.code_change_activity)
-      end
-      all_activity.select(&:should_notify?).each do |code_change_activity|
-        code_change_activity.notified
-        unless is_first_run
-          puts("Notifying of change!")
-          CodeChangeNotification.new(code_change_activity).send
-          sleep(SECONDS_BETWEEN_NOTIFICATIONS)
+      unless Rubiclifier::IdleDetector.is_idle?
+        is_first_run = is_first_run?
+        puts
+        puts("Querying API...")
+        all_code_changes = Api.current_api.all_code_changes
+        puts("Checking for notifications to display...")
+        all_activity = []
+        all_code_changes.each do |cc|
+          cc.code_change_activity.sort! { |a, b| a.created_at <=> b.created_at }
+          all_activity.concat(cc.code_change_activity)
+        end
+        all_activity.select(&:should_notify?).each do |code_change_activity|
+          code_change_activity.notified
+          unless is_first_run
+            puts("Notifying of change!")
+            CodeChangeNotification.new(code_change_activity).send
+            sleep(SECONDS_BETWEEN_NOTIFICATIONS)
+          end
         end
       end
       sleep(SECONDS_BETWEEN_RUNS)
@@ -53,6 +55,7 @@ class CodeReviewNotifier < Rubiclifier::BaseApplication
     [
       Rubiclifier::Feature::BACKGROUND,
       Rubiclifier::Feature::DATABASE,
+      Rubiclifier::Feature::IDLE_DETECTION,
       Rubiclifier::Feature::NOTIFICATIONS
     ]
   end

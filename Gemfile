@@ -2,4 +2,4 @@ source "https://rubygems.org"
 
 gemspec
 
-gem "rubiclifier", "1.0.0"
+gem "rubiclifier", "1.2.0"
