@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 
-require "code_review_notifier"
+require_relative "../lib/code_review_notifier.rb"
 
 CodeReviewNotifier.new(ARGV).call

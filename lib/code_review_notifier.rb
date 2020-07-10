@@ -27,10 +27,8 @@ class CodeReviewNotifier < Rubiclifier::BaseApplication
       puts("Checking for notifications to display...")
       all_activity = []
       all_code_changes.each do |cc|
-        activity_for_code_change = cc.code_change_activity
-        activity_for_code_change.sort! { |a, b| a.created_at <=> b.created_at }
-        cc.activity_from_self_at = activity_for_code_change.find { |a| a.is_self }&.created_at
-        all_activity.concat(activity_for_code_change)
+        cc.code_change_activity.sort! { |a, b| a.created_at <=> b.created_at }
+        all_activity.concat(cc.code_change_activity)
       end
       all_activity.select(&:should_notify?).each do |code_change_activity|
         code_change_activity.notified

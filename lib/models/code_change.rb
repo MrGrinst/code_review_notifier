@@ -3,7 +3,6 @@ require "date"
 class CodeChange
   attr_accessor :code_change_activity
   attr_reader :id, :owner, :project, :subject, :updated_at
-  attr_writer :activity_from_self_at
 
   def initialize(id, owner, project, subject, updated_at)
     @id = id
@@ -14,7 +13,6 @@ class CodeChange
   end
 
   def activity_from_self_at
-    raise "@activity_from_self_at is not set" unless instance_variable_defined?("@activity_from_self_at")
-    @activity_from_self_at
+    @activity_from_self_at ||= code_change_activity.find { |a| a.is_self }&.created_at
   end
 end
