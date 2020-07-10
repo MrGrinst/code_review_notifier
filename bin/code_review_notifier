@@ -2,4 +2,4 @@
 
 require_relative "../lib/code_review_notifier.rb"
 
-CodeReviewNotifier.new(ARGV).call
+CodeReviewNotifier.new(ARGV, __FILE__.split("/").last).call
