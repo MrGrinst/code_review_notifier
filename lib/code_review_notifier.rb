@@ -69,10 +69,6 @@ class CodeReviewNotifier < Rubiclifier::BaseApplication
     ]
   end
 
-  def executable_name
-    "code_review_notifier"
-  end
-
   def data_directory
     "~/.code_review_notifier"
   end
