@@ -2,7 +2,7 @@ require "rubiclifier"
 require_relative "./api.rb"
 require_relative "./code_change_notification.rb"
 
-SECONDS_BETWEEN_RUNS = 90
+SECONDS_BETWEEN_RUNS = 60
 SECONDS_BETWEEN_NOTIFICATIONS = 5
 
 class CodeReviewNotifier < Rubiclifier::BaseApplication
@@ -19,10 +19,12 @@ class CodeReviewNotifier < Rubiclifier::BaseApplication
   end
 
   def run_application
+    $stdout.sync = true
     while true
       unless Rubiclifier::IdleDetector.is_idle?
         is_first_run = is_first_run?
         puts
+        puts(Time.now().to_s)
         puts("Querying API...")
         all_code_changes = Api.current_api.all_code_changes
         puts("Checking for notifications to display...")
@@ -39,6 +41,7 @@ class CodeReviewNotifier < Rubiclifier::BaseApplication
             sleep(SECONDS_BETWEEN_NOTIFICATIONS)
           end
         end
+        puts("Sleeping for #{SECONDS_BETWEEN_RUNS} seconds...")
       end
       sleep(SECONDS_BETWEEN_RUNS)
     end
@@ -63,9 +66,9 @@ class CodeReviewNotifier < Rubiclifier::BaseApplication
   def settings
     @settings ||= [
       Rubiclifier::Setting.new("base_api_url", "base URL", explanation: "e.g. https://gerrit.google.com"),
-      Rubiclifier::Setting.new("username", "account username"),
-      Rubiclifier::Setting.new("password", "account password", explanation: "input hidden", is_secret: true),
-      Rubiclifier::Setting.new("account_id", "account ID", explanation: -> {"check #{Api.current_api.base_api_url}/settings/"})
+      Rubiclifier::Setting.new("api_token", "API token"),
+      Rubiclifier::Setting.new("username", "Gitlab username"),
+      Rubiclifier::Setting.new("team_name", "Gitlab team")
     ]
   end
 

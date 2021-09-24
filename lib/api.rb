@@ -1,7 +1,7 @@
-require_relative "./gerrit_api.rb"
+require_relative "./gitlab_api.rb"
 
 class Api
   def self.current_api
-    GerritApi
+    GitlabApi
   end
 end

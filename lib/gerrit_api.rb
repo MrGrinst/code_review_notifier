@@ -41,7 +41,7 @@ class GerritApi < Rubiclifier::BaseApi
   end
 
   def self.code_change_from_json(json)
-    code_change = CodeChange.new(json["_number"].to_s, json["owner"]["name"], json["project"], json["subject"], Time.parse(json["updated"]).to_i)
+    code_change = CodeChange.new(json["_number"].to_s, json["owner"]["name"], json["project"], json["subject"])
     code_change.code_change_activity = json["messages"].map { |m| code_change_activity_from_json(code_change, m) }
     code_change
   end

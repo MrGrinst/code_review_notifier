@@ -11,16 +11,15 @@ class CodeChangeNotification
 
   def send
     code_change = code_change_activity.code_change
-    id = code_change.id
     owner = code_change.owner
     subject = code_change.subject
 
     message = code_change_activity.message
     author = code_change_activity.author
     Rubiclifier::Notification.new(
-      author,
-      message,
       "#{owner}: #{subject}",
+      message,
+      author,
       Api.current_api.favicon,
       Api.current_api.code_change_url(code_change)
     ).send
