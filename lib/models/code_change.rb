@@ -35,10 +35,14 @@ class CodeChange
       @code_change_activity.push(GitlabCodeChangeActivity.new("#{id}-opened", owner, is_self, "just opened merge request", Time.now(), self))
     end
     if pipeline_updated_at && pipeline_updated_at > last_pipeline_updated_at && pipeline_status != last_pipeline_status
-      @code_change_activity.push(GitlabCodeChangeActivity.new(nil, "Gitlab", false, "pipeline status: #{pipeline_status}", Time.now(), self))
+      if pipeline_status != "CREATED" && pipeline_status != "PENDING" && pipeline_status != "RUNNING" && (is_self || pipeline_status != "FAILED")
+        @code_change_activity.push(GitlabCodeChangeActivity.new(nil, "Gitlab", false, "pipeline status: #{pipeline_status}", Time.now(), self))
+      end
     end
     if approved != last_approval_status
-      @code_change_activity.push(GitlabCodeChangeActivity.new(nil, "Gitlab", false, approved ? "fully approved" : "needs approvals again", Time.now(), self))
+      if is_self || !approved
+        @code_change_activity.push(GitlabCodeChangeActivity.new(nil, "Gitlab", false, approved ? "fully approved" : "needs approvals again", Time.now(), self))
+      end
     end
   end
 

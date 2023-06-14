@@ -65,7 +65,7 @@ class CodeReviewNotifier < Rubiclifier::BaseApplication
 
   def settings
     @settings ||= [
-      Rubiclifier::Setting.new("base_api_url", "base URL", explanation: "e.g. https://gerrit.google.com"),
+      Rubiclifier::Setting.new("base_api_url", "base URL", explanation: "e.g. https://gitlab.com"),
       Rubiclifier::Setting.new("api_token", "API token"),
       Rubiclifier::Setting.new("username", "Gitlab username"),
       Rubiclifier::Setting.new("team_name", "Gitlab team")

@@ -16,13 +16,17 @@ class GitlabCodeChangeActivity < CodeChangeActivity
   end
 
   def self.translate_message(message)
-    message.sub(/^(added \d+ commits?).*/m, '\1')
-      .gsub("'", "’")
+    message = message.gsub("'", "’")
       .gsub("\n", " ")
       .gsub("  ", " ")
       .gsub(">", "")
       .sub(/^\(/, "\\(")
       .sub(/^\[/, "\\[")
       .sub(/^-/, "\\-")
+    if message =~ /added \d+ commits/
+      "pushed code or rebased"
+    else
+      message
+    end
   end
 end

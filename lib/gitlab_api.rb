@@ -24,6 +24,7 @@ class StoredValues
 end
 
 class GitlabApi < Rubiclifier::BaseApi
+  Rubiclifier::Feature.set_enabled([Rubiclifier::Feature::DATABASE])
   Rubiclifier::DB.hydrate("~/.code_review_notifier", "#{File.expand_path(File.dirname(__FILE__) + "/..")}/migrations.rb")
 
   HTTP = GraphQL::Client::HTTP.new(StoredValues.base_api_url) do
@@ -159,7 +160,14 @@ class GitlabApi < Rubiclifier::BaseApi
       ]
     else
       messages = data.discussions.nodes.flat_map { |n| n.notes.nodes }
-      code_change.code_change_activity = messages.map { |m| code_change_activity_from_json(code_change, m) }
+      code_change.code_change_activity = messages
+        .map { |m| code_change_activity_from_json(code_change, m) }
+        .reject do |a|
+          message = a.message.downcase.strip
+          hide_for_me = message =~ /pushed code or rebased/
+          hide_for_all = message.start_with?("aborted the automatic merge") || message.start_with?("enabled an automatic merge")
+          hide_for_all || (a.is_self && hide_for_me)
+        end
       code_change.generate_additional_activity
     end
     code_change.persist
